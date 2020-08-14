@@ -33,6 +33,30 @@ My job
 
 ![](frans_and_geert.jpg)
 
+What I need
+========================================================
+
+ * the number of spots
+ * the number of TMH spots
+ * the number of epitopes
+ * the number of TMH epitopes
+
+What I need
+========================================================
+
+```
+SWINGTRANSMITWILLINGFASCINATEARISERISKGRATE
+0000000000000000001111111111111111111110000
+......xxxxxxxxxxxxxxxxxxxxxxxxx
+ A-----------A
+            B-----------B
+                     C-----------C
+```
+
+n_spots|n_spots_tmh|n_binders|n_binder_tmh
+-------|-----------|---------|------------
+31     |25         |3        |2
+
 Goal
 ========================================================
 
