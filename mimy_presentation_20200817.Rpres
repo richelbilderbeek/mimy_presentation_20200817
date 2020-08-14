@@ -1,0 +1,165 @@
+The overpresentation of TMHs
+========================================================
+author: Richèl J.C. Bilderbeek
+date:
+autosize: true
+
+[https://github.com/richelbilderbeek/mimy_presentation_20200818](https://github.com/richelbilderbeek/mimy_presentation_20200817) ![](CC-BY-NC-SA.png)
+
+Epitope presentation
+========================================================
+
+![](fimmu-08-01118-g005_smaller.jpg)
+
+***
+
+Bianchi, Textor, van den Bogaart. 2017. "Transmembrane Helices are an overlooked source of Major Histocompatibility Complex Class I epitopes." Frontiers in Immunology
+
+TMHs are presentated more often
+========================================================
+
+![](fimmu-08-01118-g001a.png)
+
+***
+
+![](frans_and_geert_and_johannes.jpg)
+
+My job
+========================================================
+
+> "Could you do this for MHC-II as well?"
+
+***
+
+![](frans_and_geert.jpg)
+
+Goal
+========================================================
+
+ * Reproducible research
+ * Modern and free software
+ * High quality work
+
+Differences with earlier study
+========================================================
+
+ * Added 21 MHC-II haplotypes
+ * Definition of a binder
+ * Modern and free prediction software
+
+Modern and free prediction software
+========================================================
+
+Goal                    |Classical study|My study
+------------------------|---------------|----------
+TMH prediction          |Textor's       |PureseqTM
+IC50 prediction (MHC-I) |NetMHCpan      |MHCnuggets
+IC50 prediction (MHC-II)|NA             |MHCnuggets
+
+Problem
+========================================================
+
+ * TMH prediction by PureseqTM has a CLI
+ * IC50 prediction by MHCnuggets is written in Python
+ * No time to learn Python, stick with R
+
+Solution
+========================================================
+
+I wrote two R packages:
+
+Goal           |Tool       |R package
+---------------|-----------|-----------
+TMH prediction |PureseqTM  |pureseqtmr
+IC50 prediction|MHCnuggets |mhcnuggetsr
+
+ * `pureseqtmr` is already on CRAN
+
+Demo
+========================================================
+
+```{r cache=TRUE}
+pureseqtmr::predict_topology_from_sequence(
+  "IDEALLYFANTASTICALLYSIMPLIFYTHINKS"
+)
+```
+
+Demo
+========================================================
+
+```{r cache=TRUE}
+mhcnuggetsr::predict_ic50(
+  mhcnuggetsr::create_mhcnuggets_options(
+    mhc = "HLA-DPB103:01",
+  ),
+  peptides = "FANTASTICALLY"
+)$ic50
+```
+
+Definition of a binder in text
+========================================================
+
+> "IC50 values for all 9-mers from the human proteome were predicted. The 2% peptides with the lowest IC50 values were defined as binders"
+
+Peptide [*] |IC50 1|IC50 2|IC50 3
+------------|------|------|------
+AAAAAAAAARG |1     |1     |100
+EEEEEEEEEKS |2k    |2k    |200k
+
+Definition of a binder in code
+========================================================
+
+```
+x <- read.fasta("UP000005640_9606.fasta")
+
+for(i in seq_along(x)){
+	# ...
+	xb <- binders(
+	  x[[i]], mhc,
+	  quantile.threshold = .02
+	)
+	# ...
+}
+```
+
+Definition of a binder we use
+========================================================
+
+A binder has an IC50 in the lowest 2% of all IC50s.
+
+ * In practice: 'all IC50s' = 'IC50s obtained from 10k random peptides'
+
+Solution
+========================================================
+
+I wrote a package with lookup tables, `mhcnpreds`:
+
+```{r cache=TRUE}
+mhcnpreds::get_ic50_threshold(
+  peptide_length = 9,
+  mhc_haplotype = "HLA-DPB103:01",
+  percentile = 0.02
+)
+```
+
+What I need
+========================================================
+
+```{r cache=TRUE}
+t <- bbbq::predict_counts(
+  peptide = paste0(
+    "SWINGTRANSMITWILLINGFASCINATEARISE",
+    "RISKGRATEENTERTAININGSHARPERPANDER"
+  ),
+  haplotype = "HLA-DPB103:01",
+  peptide_length = 13,
+  percentile = 0.02
+)
+```
+
+What I need
+========================================================
+
+```{r}
+knitr::kable(t)
+```

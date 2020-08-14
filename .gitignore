@@ -37,3 +37,5 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+mimy_presentation_20200817-cache/
+mimy_presentation_20200817.md
