@@ -220,15 +220,23 @@ knitr::kable(t)
 
  * Takes only 55 seconds on average!
 
-Old results
+Results (83 / 75004 proteins)
 ========================================================
 
-![](fig_f_tmh_mhc1_grid.png)
+![](fig_f_tmh_mhc1_grid_20.png)
 
-Old results
-========================================================
+***
 
 ![](fig_f_tmh_mhc2_grid_25.png)
+
+Results (1470 / 75004 proteins)
+========================================================
+
+![](fig_f_tmh_mhc1_grid_partial_20.png)
+
+***
+
+![](fig_f_tmh_mhc2_grid_partial_20.png)
 
 So, you're done?
 ========================================================
