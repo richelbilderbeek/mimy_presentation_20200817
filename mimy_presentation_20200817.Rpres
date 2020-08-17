@@ -1,10 +1,15 @@
-The overpresentation of TMHs
+MHC-II TMH epitopes
 ========================================================
 author: Richèl J.C. Bilderbeek
 date:
 autosize: true
 
-[https://github.com/richelbilderbeek/mimy_presentation_20200818](https://github.com/richelbilderbeek/mimy_presentation_20200817) ![](CC-BY-NC-SA.png)
+```
+https://github.com/richelbilderbeek/
+mimy_presentation_20200818
+```
+
+![](CC-BY-NC-SA.png)
 
 Epitope presentation
 ========================================================
@@ -33,15 +38,7 @@ My job
 
 ![](frans_and_geert.jpg)
 
-What I need
-========================================================
-
- * the number of spots
- * the number of TMH spots
- * the number of epitopes
- * the number of TMH epitopes
-
-What I need
+My job in a nutshell
 ========================================================
 
 ```
@@ -53,16 +50,19 @@ SWINGTRANSMITWILLINGFASCINATEARISERISKGRATE
                      C-----------C
 ```
 
-n_spots|n_spots_tmh|n_binders|n_binder_tmh
--------|-----------|---------|------------
-31     |25         |3        |2
+n_binders|n_binder_tmh|n_spots  |n_spots_tmh
+---------|------------|---------|------------
+3        |2           |31       |25
 
 Goal
 ========================================================
 
  * Reproducible research
- * Modern and free software
+ * Modern [1] and free prediction software
+ * Usable by others
  * High quality work
+
+[1] Spoiler: I will regret this
 
 Differences with earlier study
 ========================================================
@@ -74,11 +74,13 @@ Differences with earlier study
 Modern and free prediction software
 ========================================================
 
-Goal                    |Classical study|My study
-------------------------|---------------|----------
-TMH prediction          |Textor's       |PureseqTM
-IC50 prediction (MHC-I) |NetMHCpan      |MHCnuggets
-IC50 prediction (MHC-II)|NA             |MHCnuggets
+Goal                    |Classical study|Year|My study  |Year
+------------------------|---------------|----|----------|-----
+TMH prediction          |TMHMM [1]      |2001|PureseqTM |2019
+IC50 prediction (MHC-I) |Textor's       |2009|MHCnuggets|2020
+IC50 prediction (MHC-II)|.              |.   |MHCnuggets|2020
+
+ * [1] from a server (can now also use https://github.com/richelbilderbeek/tmhmm)
 
 Problem
 ========================================================
@@ -93,9 +95,9 @@ Solution
 I wrote two R packages:
 
 Goal           |Tool       |R package
----------------|-----------|-----------
-TMH prediction |PureseqTM  |pureseqtmr
-IC50 prediction|MHCnuggets |mhcnuggetsr
+---------------|-----------|-------------
+TMH prediction |PureseqTM  |`pureseqtmr`
+IC50 prediction|MHCnuggets |`mhcnuggetsr`
 
  * `pureseqtmr` is already on CRAN
 
@@ -114,7 +116,7 @@ Demo
 ```{r cache=TRUE}
 mhcnuggetsr::predict_ic50(
   mhcnuggetsr::create_mhcnuggets_options(
-    mhc = "HLA-DPB103:01",
+    mhc = "HLA-DPB103:01"
   ),
   peptides = "FANTASTICALLY"
 )$ic50
@@ -151,7 +153,26 @@ Definition of a binder we use
 
 A binder has an IC50 in the lowest 2% of all IC50s.
 
- * In practice: 'all IC50s' = 'IC50s obtained from 10k random peptides'
+***
+
+```{r echo=FALSE,fig.height=6,cache=TRUE}
+ggplot2::ggplot(
+  mhcnpreds::get_lut(9, "HLA-DPB103:01"),
+  ggplot2::aes(x = q, y = ic50)
+) + ggplot2::geom_point() +
+  ggplot2::geom_vline(
+    xintercept = 0.02,
+    color = "blue"
+  ) +
+  ggplot2::geom_hline(
+    yintercept = mhcnpreds::get_ic50_threshold(
+      peptide_length = 9,
+      mhc_haplotype = "HLA-DPB103:01",
+      percentile = 0.02
+    ),
+    color = "red"
+  )
+```
 
 Solution
 ========================================================
@@ -166,7 +187,16 @@ mhcnpreds::get_ic50_threshold(
 )
 ```
 
-What I need
+The bbbq package
+========================================================
+
+Combines all these:
+
+ * TMH prediction by `pureseqtmr`
+ * IC50 prediction: `mucnuggetsr`
+ * Epitope prediction: `mhcnpreds`
+
+Demo
 ========================================================
 
 ```{r cache=TRUE}
@@ -181,9 +211,94 @@ t <- bbbq::predict_counts(
 )
 ```
 
-What I need
+Just what I needed :-)
 ========================================================
 
 ```{r}
 knitr::kable(t)
 ```
+
+ * Takes only 55 seconds on average!
+
+Old results
+========================================================
+
+![](fig_f_tmh_mhc1_grid.png)
+
+Old results
+========================================================
+
+![](fig_f_tmh_mhc2_grid_25.png)
+
+So, you're done?
+========================================================
+
+Scaling up may be harder than you think.
+
+Total runtime
+========================================================
+
+ * Human proteome has 75k proteins
+ * There are 34 haplotypes
+ * One protein takes 55 seconds on average
+ * Total: 1623 days
+
+Solution: split up into jobs
+
+ETA: +16 days if 100 jobs running
+
+Total number of jobs
+========================================================
+
+ * Need 2.6 millions jobs
+ * Peregrine allows for 1000 jobs max
+
+Solution: write code to always fill up to 950 jobs in the queue.
+
+Number of files
+========================================================
+
+ * 2.6 million files needed
+ * Cluster maximum: 1.1 million files
+
+Doable
+
+Working with files
+========================================================
+
+```
+ls *.csv
+```
+
+ * bash can have 2 million characters for arguments
+ * filename has 23 characters on average
+ * Cannot use basic command after 87k files
+
+Solution: use workarounds for basic file operations
+
+File sizes
+========================================================
+
+ * One job = 1 count file (8 kb) + 1 log file (51 kb)
+ * Total disk usage: 20.4 Gb (counts only)
+ * Total disk usage: 150.8 Gb (all files)
+ * Cluster limit: 250 Gb
+
+Doable
+
+But how fast is it really?
+========================================================
+
+ * First job: 2020-08-13T14:07:17
+ * Approx 4 days ago
+ * 2240 proteins (of 75k) done
+ * Approx 500 proteins per day
+ * ETA: +150 days
+
+Conclusion
+========================================================
+
+ * Wrote at least 5 packages that can be used by anyone
+ * 55 secs per job -> 150 days of running
+ * Can use partial results
+ * Need to use older methods
